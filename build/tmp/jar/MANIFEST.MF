@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Specification-Title: hyperoil
-Specification-Vendor: 
-Specification-Version: 1
-Implementation-Title: hyperoil-1-21-4
-Implementation-Version: 1.0-SNAPSHOT
-Implementation-Vendor: 
-Implementation-Timestamp: 2025-04-17T16:12:10+0200
-
