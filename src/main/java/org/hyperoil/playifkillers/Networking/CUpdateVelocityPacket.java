@@ -26,7 +26,6 @@ public class CUpdateVelocityPacket {
         LocalPlayer lp = Minecraft.getInstance().player;
         if (lp == null) return;
         lp.setDeltaMovement(velocity);
-        System.out.println(lp.getYRot());
         context.setPacketHandled(true);
     }
 }
