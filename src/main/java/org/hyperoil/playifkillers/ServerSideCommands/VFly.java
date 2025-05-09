@@ -12,7 +12,11 @@ import net.minecraft.server.level.ServerPlayer;
 import org.hyperoil.playifkillers.Utilities.CommandRegistrar;
 import org.hyperoil.playifkillers.Utilities.VFlyEnabled;
 
+import java.util.HashMap;
+import java.util.UUID;
+
 public class VFly extends CommandRegistrar {
+    private HashMap<UUID, Boolean> allowFlight = new HashMap<>();
     public VFly(CommandDispatcher<CommandSourceStack> dispatcher) {
         super(dispatcher);
     }
@@ -26,8 +30,10 @@ public class VFly extends CommandRegistrar {
             return Command.SINGLE_SUCCESS;
         }
         if (VFlyEnabled.getIsVFlyEnabled(sp)) {
+            sp.getAbilities().mayfly = allowFlight.get(sp.getUUID());
             VFlyEnabled.setIsVFlyEnabled(sp, false);
         } else {
+            allowFlight.put(sp.getUUID(), sp.getAbilities().mayfly);
             VFlyEnabled.setIsVFlyEnabled(sp, true);
         }
         return Command.SINGLE_SUCCESS;
