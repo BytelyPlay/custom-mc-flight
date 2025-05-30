@@ -2,18 +2,18 @@ package org.hyperoil.playifkillers.Listeners;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.hyperoil.playifkillers.Networking.CUpdateVelocityPacket;
-import org.hyperoil.playifkillers.Networking.PacketsHandler;
+import org.hyperoil.playifkillers.Networking.PacketsControl;
 import org.hyperoil.playifkillers.Networking.SRequiredFlightInformation;
 import org.hyperoil.playifkillers.Utilities.VFlyEnabled;
 import org.hyperoil.playifkillers.hyperoil;
 
 import java.util.HashMap;
 
-@Mod.EventBusSubscriber(modid = hyperoil.MODID)
+@EventBusSubscriber(modid = hyperoil.MODID)
 public class VFlyListeners {
     private static final Vec3 JumpVec3 = new Vec3(0, 2, 0);
     private static final Vec3 DownVec3 = new Vec3(0, -2, 0);
@@ -21,7 +21,7 @@ public class VFlyListeners {
 
     public static HashMap<ServerPlayer, SRequiredFlightInformation> packetHashMap = new HashMap<>();
     @SubscribeEvent
-    public void onServerTickEvent(TickEvent.ServerTickEvent e) {
+    public static void onServerTickEvent(ServerTickEvent.Post e) {
         for (ServerPlayer sp : packetHashMap.keySet()) {
             SRequiredFlightInformation requiredFlightInformation = packetHashMap.get(sp);
             if (requiredFlightInformation == null) {
@@ -29,40 +29,40 @@ public class VFlyListeners {
                 return;
             }
             if (VFlyEnabled.getIsVFlyEnabled(sp)) {
-                float yaw = requiredFlightInformation.yaw;
+                float yaw = requiredFlightInformation.yaw();
                 double radians = Math.toRadians(yaw);
                 Vec3 Vec3ToModify = ElseVec3;
-                if (requiredFlightInformation.Jumping) {
+                if (requiredFlightInformation.Jumping()) {
                     Vec3ToModify = Vec3ToModify.add(JumpVec3);
                 }
-                if (requiredFlightInformation.Sneak) {
+                if (requiredFlightInformation.Sneak()) {
                     Vec3ToModify = Vec3ToModify.add(DownVec3);
                 }
-                if (requiredFlightInformation.right) {
+                if (requiredFlightInformation.right()) {
                     double xRight = -Math.sin(radians + Math.PI / 2);
                     double zRight = Math.cos(radians + Math.PI / 2);
                     Vec3ToModify = Vec3ToModify.add(new Vec3(xRight, 0, zRight).scale(2.5));
                 }
-                if (requiredFlightInformation.left) {
+                if (requiredFlightInformation.left()) {
                     double xLeft = -Math.sin(radians - Math.PI / 2);
                     double zLeft = Math.cos(radians - Math.PI / 2);
                     Vec3ToModify = Vec3ToModify.add(new Vec3(xLeft, 0, zLeft).scale(2.5));
                 }
-                if (requiredFlightInformation.forward) {
+                if (requiredFlightInformation.forward()) {
                     double xDir = -Math.sin(radians);
                     double zDir = Math.cos(radians);
                     Vec3ToModify = Vec3ToModify.add(new Vec3(xDir, 0, zDir).scale(2.5));
                 }
-                if (requiredFlightInformation.backwards) {
+                if (requiredFlightInformation.backwards()) {
                     double xDir = -Math.sin(radians);
                     double zDir = Math.cos(radians);
                     Vec3ToModify = Vec3ToModify.add(new Vec3(xDir, 0, zDir).scale(-2.5));
                 }
-                if (requiredFlightInformation.Sprinting) {
+                if (requiredFlightInformation.Sprinting()) {
                     Vec3ToModify = Vec3ToModify.scale(1.5);
                 }
                 sp.setDeltaMovement(Vec3ToModify);
-                PacketsHandler.sendUpdateVelocityPacketToClient(new CUpdateVelocityPacket(Vec3ToModify), sp);
+                PacketsControl.sendUpdateVelocityPacketToClient(new CUpdateVelocityPacket(Vec3ToModify), sp);
             }
         }
     }

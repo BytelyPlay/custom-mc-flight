@@ -1,31 +1,32 @@
 package org.hyperoil.playifkillers.Networking;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.FriendlyByteBuf;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.network.CustomPayloadEvent;
-import org.hyperoil.playifkillers.Listeners.VFlyListeners;
+import org.jetbrains.annotations.NotNull;
 
-public class CUpdateVelocityPacket {
-    public final Vec3 velocity;
+public record CUpdateVelocityPacket(double x, double y, double z) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<CUpdateVelocityPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("hyperoil", "clientboundupdatevelocitypacket"));
 
-    public CUpdateVelocityPacket(Vec3 vel) {
-        velocity = vel;
+    public static final StreamCodec<ByteBuf, CUpdateVelocityPacket> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.DOUBLE,
+            CUpdateVelocityPacket::x,
+            ByteBufCodecs.DOUBLE,
+            CUpdateVelocityPacket::y,
+            ByteBufCodecs.DOUBLE,
+            CUpdateVelocityPacket::z,
+            CUpdateVelocityPacket::new
+    );
+
+    public CUpdateVelocityPacket(Vec3 vec3) {
+        this(vec3.x(), vec3.y(), vec3.z());
     }
 
-    public CUpdateVelocityPacket(FriendlyByteBuf friendlyByteBuf) {
-        this(friendlyByteBuf.readVec3());
-    }
-
-    public static void encode(CUpdateVelocityPacket p, FriendlyByteBuf buffer) {
-        buffer.writeVec3(p.velocity);
-    }
-
-    public void handle(CustomPayloadEvent.Context context) {
-        LocalPlayer lp = Minecraft.getInstance().player;
-        if (lp == null) return;
-        lp.setDeltaMovement(velocity);
-        context.setPacketHandled(true);
+    @Override
+    public CustomPacketPayload.@NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

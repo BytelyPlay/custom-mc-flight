@@ -1,52 +1,47 @@
 package org.hyperoil.playifkillers.Networking;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.event.network.CustomPayloadEvent;
-import org.hyperoil.playifkillers.Listeners.VFlyListeners;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
-public class SRequiredFlightInformation {
-    public final boolean Sprinting;
-    public final boolean Jumping;
-    public final boolean forward;
-    public final boolean backwards;
-    public final boolean left;
-    public final boolean right;
-    public final boolean Sneak;
-    // This is because forge LOVESSSSSS to desync yaw so i have to get it manually and another custom packet just gets overwritten
-    // i will probably have to make sure this isn't too much data.
-    public final float yaw;
+public record SRequiredFlightInformation(
+        boolean Sprinting,
+        boolean Jumping,
+        boolean forward,
+        boolean backwards,
+        boolean left,
+        boolean right,
+        boolean Sneak,
+        float yaw
+) implements CustomPacketPayload {
+    // moved to neoforge check if the yaw part is still required for accurate yaw.
 
-    public SRequiredFlightInformation(boolean isSprinting, boolean jumping, boolean forward, boolean backwards, boolean left, boolean right, boolean sneak, float yaw1) {
-        this.Sprinting = isSprinting;
-        Jumping = jumping;
-        this.forward = forward;
-        this.backwards = backwards;
-        this.left = left;
-        this.right = right;
-        Sneak = sneak;
-        yaw = yaw1;
-    }
+    public static final CustomPacketPayload.Type<SRequiredFlightInformation> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("hyperoil", "serverboundrequiredflightinformation"));
 
-    public SRequiredFlightInformation(FriendlyByteBuf friendlyByteBuf) {
-        this(friendlyByteBuf.readBoolean(), friendlyByteBuf.readBoolean(),
-                friendlyByteBuf.readBoolean(), friendlyByteBuf.readBoolean(),
-                friendlyByteBuf.readBoolean(), friendlyByteBuf.readBoolean(),
-                friendlyByteBuf.readBoolean(), friendlyByteBuf.readFloat());
-    }
+    public static final StreamCodec<ByteBuf, SRequiredFlightInformation> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.BOOL,
+            SRequiredFlightInformation::Sprinting,
+            ByteBufCodecs.BOOL,
+            SRequiredFlightInformation::Jumping,
+            ByteBufCodecs.BOOL,
+            SRequiredFlightInformation::forward,
+            ByteBufCodecs.BOOL,
+            SRequiredFlightInformation::backwards,
+            ByteBufCodecs.BOOL,
+            SRequiredFlightInformation::left,
+            ByteBufCodecs.BOOL,
+            SRequiredFlightInformation::right,
+            ByteBufCodecs.BOOL,
+            SRequiredFlightInformation::Sneak,
+            ByteBufCodecs.FLOAT,
+            SRequiredFlightInformation::yaw,
+            SRequiredFlightInformation::new
+    );
 
-    public static void encode(SRequiredFlightInformation p, FriendlyByteBuf buffer) {
-        buffer.writeBoolean(p.Sprinting);
-        buffer.writeBoolean(p.Jumping);
-        buffer.writeBoolean(p.forward);
-        buffer.writeBoolean(p.backwards);
-        buffer.writeBoolean(p.left);
-        buffer.writeBoolean(p.right);
-        buffer.writeBoolean(p.Sneak);
-        buffer.writeFloat(p.yaw);
-    }
-
-    public void handle(CustomPayloadEvent.Context context) {
-        VFlyListeners.packetHashMap.put(context.getSender(), this);
-        context.setPacketHandled(true);
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }
