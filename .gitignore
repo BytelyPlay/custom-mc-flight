@@ -4,3 +4,5 @@
 /.git
 *.iml
 *.log
+/run
+/gradle
